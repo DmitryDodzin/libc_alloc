@@ -34,12 +34,27 @@ static ALLOCATOR: LibcAlloc = LibcAlloc;
 
 #[cfg(not(target_family = "windows"))]
 unsafe impl GlobalAlloc for LibcAlloc {
+    #[cfg(not(target_os = "macos"))]
     #[inline]
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         libc::memalign(
             layout.align().max(core::mem::size_of::<usize>()),
             layout.size(),
         ) as *mut u8
+    }
+
+    #[cfg(target_os = "macos")]
+    #[inline]
+    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        let mut ptr: *mut c_void = ptr::null_mut();
+
+        libc::posix_memalign(
+            &mut ptr as *mut *mut c_void,
+            layout.align().max(core::mem::size_of::<usize>()),
+            layout.size(),
+        );
+
+        ptr as *mut u8
     }
 
     #[inline]
