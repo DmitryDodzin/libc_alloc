@@ -14,6 +14,12 @@ extern "C" {
     #[cfg(not(target_os = "macos"))]
     pub fn memalign(align: size_t, size: size_t) -> *mut c_void;
 
-    #[cfg(target_os = "macos")]
+}
+
+#[cfg(target_os = "macos")]
+extern "C" {
+    #[link_name = "__error"]
+    pub fn errno_location() -> *mut core::ffi::c_int;
+
     pub fn posix_memalign(ptr: *mut *mut c_void, align: size_t, size: size_t) -> core::ffi::c_int;
 }

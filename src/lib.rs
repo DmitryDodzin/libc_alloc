@@ -48,11 +48,17 @@ unsafe impl GlobalAlloc for LibcAlloc {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         let mut ptr: *mut c_void = ptr::null_mut();
 
-        libc::posix_memalign(
+        let errno = libc::posix_memalign(
             &mut ptr as *mut *mut c_void,
             layout.align().max(core::mem::size_of::<usize>()),
             layout.size(),
         );
+
+        if errno != 0 {
+            *libc::errno_location() = errno;
+
+            return ptr::null::<c_void>() as *mut u8;
+        }
 
         ptr as *mut u8
     }
